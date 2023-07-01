@@ -1,21 +1,139 @@
 import streamlit as st
-from chat.chat import create_agent
-from chat.chat import init_chat
+from chat.chat import init_agent
 
-container = st.empty()
-if st.session_state.get("summarizer_conversation_id"):
-    init_chat(container, "summarizer_conversation_id")
-else:
-    with container.form("summarizer_form", clear_on_submit=True):
-        st.markdown("# Summarizer")
-        st.markdown("_This agent summarizes any documents with defined rules_")
-        st.divider()
 
-        link = st.text_input(label="Paste here a direct link to your document")
-        uploaded_file = st.file_uploader(label="Or upload file", type=["pdf", "doc", "docx", "xlsx", "txt", "mp3", "wav", "text", "md"])
-        sentences = st.number_input(label="The number of sentences in summary", min_value=1)
-        fields = st.text_input(label="Comma separated fields that should be included in summary (optional)")
+def form(init):
+    st.markdown("# 💡 Summarizer")
+    st.markdown("_This agent summarizes any documents with defined rules_")
+    st.divider()
 
-        if st.form_submit_button("Create"):
-            if link or uploaded_file:
-                create_agent(container, "summarizer_conversation_id", "summarize", params={"sentences": sentences, "fields": fields}, firstRequest=(link if link else uploaded_file))
+    link = st.text_input(label="Paste here a direct link to your document")
+    uploaded_file = st.file_uploader(label="Or upload file", type=["pdf", "doc", "docx", "xlsx", "txt", "mp3", "wav", "text", "md"])
+    sentences = st.number_input(label="The number of sentences in summary", min_value=1)
+    fields = st.text_input(label="Comma separated fields that should be included in summary (optional)")
+    language = st.selectbox(label="Language of summary", options=[
+        "",
+        "Afrikaans",
+        "Albanian",
+        "Amharic",
+        "Arabic",
+        "Armenian",
+        "Azerbaijani",
+        "Basque",
+        "Belarusian",
+        "Bengali",
+        "Bosnian",
+        "Bulgarian",
+        "Catalan",
+        "Cebuano",
+        "Chichewa",
+        "Chinese",
+        "Corsican",
+        "Croatian",
+        "Czech",
+        "Danish",
+        "Dutch",
+        "English",
+        "Esperanto",
+        "Estonian",
+        "Filipino",
+        "Finnish",
+        "French",
+        "Frisian",
+        "Galician",
+        "Georgian",
+        "German",
+        "Greek",
+        "Gujarati",
+        "Haitian Creole",
+        "Hausa",
+        "Hawaiian",
+        "Hebrew",
+        "Hindi",
+        "Hmong",
+        "Hungarian",
+        "Icelandic",
+        "Igbo",
+        "Indonesian",
+        "Irish",
+        "Italian",
+        "Japanese",
+        "Javanese",
+        "Kannada",
+        "Kazakh",
+        "Khmer",
+        "Kinyarwanda",
+        "Korean",
+        "Kurdish",
+        "Kyrgyz",
+        "Lao",
+        "Latin",
+        "Latvian",
+        "Lithuanian",
+        "Luxembourgish",
+        "Macedonian",
+        "Malagasy",
+        "Malay",
+        "Malayalam",
+        "Maltese",
+        "Maori",
+        "Marathi",
+        "Mongolian",
+        "Myanmar (Burmese)",
+        "Nepali",
+        "Norwegian",
+        "Odia (Oriya)",
+        "Pashto",
+        "Persian",
+        "Polish",
+        "Portuguese",
+        "Punjabi",
+        "Romanian",
+        "Russian",
+        "Samoan",
+        "Scots Gaelic",
+        "Serbian",
+        "Sesotho",
+        "Shona",
+        "Sindhi",
+        "Sinhala",
+        "Slovak",
+        "Slovenian",
+        "Somali",
+        "Spanish",
+        "Sundanese",
+        "Swahili",
+        "Swedish",
+        "Tajik",
+        "Tamil",
+        "Tatar",
+        "Telugu",
+        "Thai",
+        "Turkish",
+        "Turkmen",
+        "Ukrainian",
+        "Urdu",
+        "Uyghur",
+        "Uzbek",
+        "Vietnamese",
+        "Welsh",
+        "Xhosa",
+        "Yiddish",
+        "Yoruba",
+        "Zulu"
+    ])
+
+    if st.form_submit_button("Create"):
+        init(
+            type="summarize",
+            first_request=(link if link else uploaded_file),
+            params={
+                "sentences": sentences,
+                "fields": fields,
+                "language": language
+            }
+        )
+
+
+st.set_page_config(page_title="Simmarizer agent", page_icon="💡")
+init_agent("summarizer_conversation", form, file_input=["pdf", "doc", "docx", "xlsx", "txt", "mp3", "wav", "text", "md"])

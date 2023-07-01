@@ -1,17 +1,28 @@
 import streamlit as st
-from chat.chat import create_agent
-from chat.chat import init_chat
+from chat.chat import init_agent
 
-container = st.empty()
-if st.session_state.get("data_analyst_conversation_id"):
-    init_chat(container, "data_analyst_conversation_id")
-else:
-    with container.form("data_analyst_form", clear_on_submit=True):
-        st.markdown("# Data Analyst")
-        st.markdown("_This agent analyses your datasets and answers in conversational manner_")
-        st.divider()
 
-        dataset = st.text_input(label="A link to the dataset you wish to analyse.")
-        if st.form_submit_button("Create"):
-            if dataset:
-                create_agent(container, "data_analyst_conversation_id", "api", params={"url": "https://hackgpt-test.just-ai.com/jupychat",  "model": "gpt-4-0613", "prompt": ("Act as a data scientist. Use this dataset " + dataset), "noParse": True})
+def form(init):
+    st.markdown("# 📈 Data Analyst")
+    st.markdown("_This agent analyses your datasets and answers in conversational manner_")
+    st.divider()
+
+    dataset = st.text_input(label="A link to CSV dataset you wish to analyse.")
+    uploaded_file = st.file_uploader(label="Or upload your dataset here", type=["csv", "tsv"])
+
+    if st.form_submit_button("Create"):
+        if dataset or uploaded_file:
+            init(
+                type="api",
+                firstRequest=(dataset if dataset else uploaded_file),
+                params={
+                    "url": "https://hackgpt-test.just-ai.com/jupychat",
+                    "model": "gpt-4-0613",
+                    "prompt": "Act as a data scientist.",
+                    "noParse": True
+                }
+            )
+
+
+st.set_page_config(page_title="Data Analyst agent", page_icon="📈")
+init_agent("data_analyst_conversation", form)
