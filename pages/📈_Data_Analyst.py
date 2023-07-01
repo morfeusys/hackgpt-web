@@ -14,7 +14,7 @@ def form(init):
         if dataset or uploaded_file:
             init(
                 type="api",
-                firstRequest=(dataset if dataset else uploaded_file),
+                first_request=(dataset if dataset else uploaded_file),
                 params={
                     "url": "https://hackgpt-test.just-ai.com/jupychat",
                     "model": "gpt-4-0613",

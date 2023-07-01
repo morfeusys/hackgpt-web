@@ -13,7 +13,7 @@ def form(init):
         if link or uploaded_file:
             init(
                 type="retrievalqa",
-                firstRequest=(link if link else uploaded_file)
+                first_request=(link if link else uploaded_file)
             )
 
 
