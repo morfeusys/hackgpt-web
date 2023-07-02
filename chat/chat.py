@@ -33,6 +33,7 @@ def clean_session(key):
     conversation = st.session_state[key]
     del st.session_state[key]
     del st.session_state["chat_history_" + conversation["conversation_id"]]
+    requests.delete(agents_url + "/agents/conversation/" + conversation["conversation_id"])
 
 
 def upload_files(params):
