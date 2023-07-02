@@ -12,16 +12,22 @@ def form(init):
 
     if st.form_submit_button("Create"):
         if dataset or uploaded_file:
-            init(
-                type="api",
-                first_request=(dataset if dataset else uploaded_file),
-                params={
+            init({
+                "type": "api",
+                "startRequest": uploaded_file if uploaded_file else dataset,
+                "info": {
+                    "icon": "📈",
+                    "title": "Data Analyst"
+                },
+                "params": {
                     "url": "https://hackgpt-test.just-ai.com/jupychat",
                     "model": "gpt-4-0613",
-                    "prompt": "Act as a data scientist.",
+                    "prompt": "Act as a data scientist."
+                },
+                "schema": {
                     "noParse": True
                 }
-            )
+            })
 
 
 st.set_page_config(page_title="Data Analyst agent", page_icon="📈")

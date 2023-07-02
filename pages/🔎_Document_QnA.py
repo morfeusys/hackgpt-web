@@ -9,12 +9,17 @@ def form(init):
 
     link = st.text_input(label="Paste here a direct link to your document")
     uploaded_file = st.file_uploader(label="Or upload file", type=["pdf", "doc", "docx", "xlsx", "txt", "mp3", "wav", "text", "md"])
+
     if st.form_submit_button("Create"):
         if link or uploaded_file:
-            init(
-                type="retrievalqa",
-                first_request=(link if link else uploaded_file)
-            )
+            init({
+                "type": "retrievalqa",
+                "startRequest": uploaded_file if uploaded_file else link,
+                "info": {
+                    "icon": "🔎",
+                    "title": "Document QnA"
+                }
+            })
 
 
 st.set_page_config(page_title="Document QnA agent", page_icon="🔎")

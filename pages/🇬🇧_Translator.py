@@ -117,15 +117,20 @@ def form(init):
         "Yoruba",
         "Zulu"
     ])
+
     if st.form_submit_button("Create"):
-        init(
-            type="chat",
-            prompt=f'_Okay! Now you can send me any content and I will translate it to the {language} language._',
-            params={
+        init({
+            "type": "chat",
+            "info": {
+                "icon": "🇬🇧",
+                "title": "Translator",
+                "prompt": f'_Okay! Now you can send me any content and I will translate it to the {language} language._',
+            },
+            "params": {
                 "language": language,
                 "prompt": "I want you to act as an {language} translator, spelling corrector and improver. I will speak to you in any language and you will detect the language, translate it and answer in the corrected and improved version of my text, in {language}. I want you to replace my simplified A0-level words and sentences with more beautiful and elegant, upper level English words and sentences. Keep the meaning same, but make them more literary. I want you to only reply the correction, the improvements and nothing else, do not write explanations."
             }
-        )
+        })
 
 
 st.set_page_config(page_title="Translator agent", page_icon="🇬🇧")

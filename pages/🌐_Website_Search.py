@@ -9,16 +9,21 @@ def form(init):
 
     url = st.text_input(label="Paste here a URL of starting page to parse")
     noCache = st.checkbox(label="Disable caching")
+
     if st.form_submit_button("Create"):
         if url:
-            init(
-                type="retrievalqa",
-                prompt=f'_Ready! Now send me any questions regarding the content of {url}_',
-                params={
+            init({
+                "type": "retrievalqa",
+                "info": {
+                    "icon": "🌐",
+                    "title": "Website search",
+                    "prompt": f'_Ready! Now send me any questions regarding the content of {url}_',
+                },
+                "params": {
                     "url": url,
                     "noCache": noCache
                 }
-            )
+            })
 
 
 st.set_page_config(page_title="Website search agent", page_icon="🌐")

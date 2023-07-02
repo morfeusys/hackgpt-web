@@ -7,8 +7,6 @@ def form(init):
     st.markdown("_This agent summarizes any documents with defined rules_")
     st.divider()
 
-    link = st.text_input(label="Paste here a direct link to your document")
-    uploaded_file = st.file_uploader(label="Or upload file", type=["pdf", "doc", "docx", "xlsx", "txt", "mp3", "wav", "text", "md"])
     sentences = st.number_input(label="The number of sentences in summary", min_value=1)
     fields = st.text_input(label="Comma separated fields that should be included in summary (optional)")
     language = st.selectbox(label="Language of summary", options=[
@@ -124,16 +122,23 @@ def form(init):
     ])
 
     if st.form_submit_button("Create"):
-        init(
-            type="summarize",
-            first_request=(link if link else uploaded_file),
-            params={
+        init({
+            "type": "summarize",
+            "input": {
+                "type": "file",
+                "filter": ["pdf", "doc", "docx", "xlsx", "txt", "mp3", "wav", "text", "md"]
+            },
+            "info": {
+                "icon": "💡",
+                "title": "Summarizer"
+            },
+            "params": {
                 "sentences": sentences,
                 "fields": fields,
                 "language": language
             }
-        )
+        })
 
 
 st.set_page_config(page_title="Simmarizer agent", page_icon="💡")
-init_agent("summarizer_conversation", form, file_input=["pdf", "doc", "docx", "xlsx", "txt", "mp3", "wav", "text", "md"])
+init_agent("summarizer_conversation", form)
