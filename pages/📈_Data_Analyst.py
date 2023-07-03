@@ -1,5 +1,5 @@
 import streamlit as st
-from chat.chat import init_agent
+from agent.chat import init_agent
 
 
 def form(init):

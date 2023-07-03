@@ -5,8 +5,11 @@ import requests
 import json
 import random
 import time
+import os
 
-agents_url = "https://hackgpt-test.just-ai.com"
+
+agents_api = os.environ["AGENTS_API"] if "AGENTS_API" in os.environ else "http://localhost:8000"
+agents_url = os.environ["AGENTS_URL"] if "AGENTS_URL" in os.environ else "http://localhost:8502"
 
 
 def init_agent(key, formBuilder):
@@ -22,7 +25,7 @@ def init_agent(key, formBuilder):
 
 
 def upload_file(file):
-    response = requests.post(agents_url + "/files/upload", files={"file": file})
+    response = requests.post(agents_api + "/files/upload", files={"file": file})
     if response.status_code == 200:
         return response.text
     else:
@@ -33,7 +36,7 @@ def clean_session(key):
     conversation = st.session_state[key]
     del st.session_state[key]
     del st.session_state["chat_history_" + conversation["conversation_id"]]
-    requests.delete(agents_url + "/agents/conversation/" + conversation["conversation_id"])
+    requests.delete(agents_api + "/agents/conversation/" + conversation["conversation_id"])
 
 
 def upload_files(params):
@@ -48,6 +51,25 @@ def upload_files(params):
             upload_files(value)
 
 
+def create_agent_from_template(template_id):
+    key = "conversation_" + template_id
+    if st.session_state.get(key):
+        info = st.session_state[key]["config"]["info"]
+        st.set_page_config(page_title=info["title"], page_icon=info["icon"])
+        st.markdown(f'## {info["icon"]} {info["title"]}')
+        st.markdown(f'ℹ️ _{info["description"]}_')
+        init_chat(st.empty(), key)
+    else:
+        response = requests.get(agents_api + "/agent/template/" + template_id)
+        if response.status_code == 200:
+            config = response.json()
+            st.set_page_config(page_title=config["info"]["title"], page_icon=config["info"]["icon"])
+            create_agent(st.empty(), key, config)
+        else:
+            st.error("### Sorry, but this agent was not found...\n" +
+                            "Please make sure you use the correct link.")
+
+
 def create_agent(container, key, config):
     container.info("⏳ Please wait, while I am building your agent...")
     try:
@@ -56,11 +78,14 @@ def create_agent(container, key, config):
         container.error("**Sorry, but I cannot create this agent now**: " + str(e))
         st.stop()
 
-    response = requests.post(agents_url + "/agent/create", data=json.dumps(config), headers={'Content-Type': 'application/json'})
+    response = requests.post(agents_api + "/agent/create", data=json.dumps(config),
+                             headers={'Content-Type': 'application/json'})
     if response.status_code == 200:
+        template = requests.get(agents_api + "/agent/conversation/" + response.text)
         st.session_state[key] = {
             "config": config,
-            "conversation_id": response.text
+            "conversation_id": response.text,
+            "template_id": template.json()["templateId"]
         }
         init_chat(container, key)
     else:
@@ -73,22 +98,27 @@ def init_chat(container, key):
     config = conversation["config"]
     history_key = "chat_history_" + conversation["conversation_id"]
 
-    if st.sidebar.button("🔄 Restart this conversation", use_container_width=True):
-        params = config["params"] if "params" in config else {}
-        del st.session_state[history_key]
-        requests.put(agents_url + "/agent/conversation/" + conversation_id, data=json.dumps(params), headers={'Content-Type': 'application/json'})
-        st.experimental_rerun()
+    show_sidebar = "id" not in st.experimental_get_query_params()
+    if show_sidebar:
+        publish_button = st.sidebar.button("👋 Publish this agent", use_container_width=True)
 
-    if st.sidebar.button("🧹 Close this conversation", use_container_width=True):
-        clean_session(key)
-        st.experimental_rerun()
+        if st.sidebar.button("🔄 Restart this conversation", use_container_width=True):
+            params = config["params"] if "params" in config else {}
+            del st.session_state[history_key]
+            requests.put(agents_api + "/agent/conversation/" + conversation_id, data=json.dumps(params),
+                         headers={'Content-Type': 'application/json'})
+            st.experimental_rerun()
+
+        if st.sidebar.button("🧹 Close this conversation", use_container_width=True):
+            clean_session(key)
+            st.experimental_rerun()
 
     if st.session_state.get(history_key):
         for message in st.session_state[history_key]:
             st.chat_message("user" if message["type"] == "request" else "assistant").markdown(message["text"])
     else:
         container.info("⏳ Loading conversation... Please wait...")
-        response = requests.get(agents_url + "/agent/conversation/" + conversation_id)
+        response = requests.get(agents_api + "/agent/conversation/" + conversation_id)
         if response.status_code == 200:
             data = response.json()
             st.session_state[history_key] = data["history"]
@@ -100,9 +130,9 @@ def init_chat(container, key):
 
     if not st.session_state.get(history_key):
         if "startRequest" in config:
-            container.info("⏳ Processing...")
+            container.info("⏳ Initializing your agent, please wait a bit...")
             response = requests.post(
-                agents_url + "/agent/conversation/" + conversation_id,
+                agents_api + "/agent/conversation/" + conversation_id,
                 data=config["startRequest"].encode("utf-8"), headers={'Content-Type': 'text/plain'}
             )
 
@@ -129,6 +159,42 @@ def init_chat(container, key):
         st.session_state[history_key].append({"type": "request", "text": query})
         process_query(conversation_id, history_key, query)
 
+    if show_sidebar and publish_button:
+        with st.chat_message("assistant"):
+            st.markdown("👋 _Publish this agent to allow others to use it without any settings!_")
+            st.markdown("Here you have to define title and description that other users will see.")
+            with st.form("publish_agent_form_" + conversation_id):
+                st.text_input(key="agent_title_" + key, label="Title", placeholder="Your agent descriptive title",
+                              value=config["info"].get("title") or "")
+                st.text_area(key="agent_description_" + key, label="Description",
+                             placeholder="Make it clear about how this agent works and what input it expects.",
+                             value=config["info"].get("description") or "")
+                st.form_submit_button("Publish", on_click=publish_agent, args=(key,))
+
+
+def publish_agent(key):
+    title = st.session_state["agent_title_" + key]
+    description = st.session_state["agent_description_" + key]
+    if title and description:
+        conversation = st.session_state[key]
+        config = conversation["config"]
+        config["info"]["title"] = title
+        config["info"]["description"] = description
+        history_key = "chat_history_" + conversation["conversation_id"]
+
+        response = requests.post(agents_api + "/agent/template/" + conversation["template_id"], data=json.dumps(config),
+                                 headers={'Content-Type': 'application/json'})
+
+        if response.status_code == 200:
+            url = agents_url + "?id=" + conversation["template_id"]
+            st.session_state[history_key].append(
+                {"type": "response", "text": f'👋 **Here is your agent public URL [{title}]({url})**\n\n'
+                                             f'Now you can share it with anybody to allow them to interact with your agent.\n\n'
+                                             f'_Note that nobody can change your agent configuration._'})
+        else:
+            st.session_state[history_key].append({"type": "response",
+                                                  "text": f'_Sorry, I cannot publish your agent now.., Error code: {response.status_code}_'})
+
 
 def process_query(conversation_id, history_key, query):
     with st.chat_message("assistant"):
@@ -142,11 +208,11 @@ def process_query(conversation_id, history_key, query):
 
         if isinstance(query, io.IOBase):
             response = requests.post(
-                agents_url + "/agent/conversation/" + conversation_id,
+                agents_api + "/agent/conversation/" + conversation_id,
                 files={"file": query})
         else:
             response = requests.post(
-                agents_url + "/agent/conversation/" + conversation_id,
+                agents_api + "/agent/conversation/" + conversation_id,
                 data=query.encode("utf-8"),
                 headers={'Content-Type': 'text/plain'})
 
