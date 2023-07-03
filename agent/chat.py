@@ -57,7 +57,7 @@ def create_agent_from_template(template_id):
         info = st.session_state[key]["config"]["info"]
         st.set_page_config(page_title=info["title"], page_icon=info["icon"])
         st.markdown(f'## {info["icon"]} {info["title"]}')
-        st.markdown(f'ℹ️ _{info["description"]}_')
+        st.markdown(f'ℹ️ {info["description"]}')
         init_chat(st.empty(), key)
     else:
         response = requests.get(agents_api + "/agent/template/" + template_id)
