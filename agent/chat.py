@@ -1,5 +1,5 @@
 import io
-
+import chevron
 import streamlit as st
 import requests
 import json
@@ -63,6 +63,7 @@ def create_agent_from_template(template_id):
         response = requests.get(agents_api + "/agent/template/" + template_id)
         if response.status_code == 200:
             config = response.json()
+            config["owner"] = None
             st.set_page_config(page_title=config["info"]["title"], page_icon=config["info"]["icon"])
             create_agent(st.empty(), key, config)
         else:
@@ -81,11 +82,11 @@ def create_agent(container, key, config):
     response = requests.post(agents_api + "/agent/create", data=json.dumps(config),
                              headers={'Content-Type': 'application/json'})
     if response.status_code == 200:
-        template = requests.get(agents_api + "/agent/conversation/" + response.text)
+        template = requests.get(agents_api + "/agent/conversation/" + response.text).json()
         st.session_state[key] = {
             "config": config,
             "conversation_id": response.text,
-            "template_id": template.json()["templateId"]
+            "template_id": template["templateId"]
         }
         init_chat(container, key)
     else:
@@ -145,7 +146,14 @@ def init_chat(container, key):
                 container.error("Sorry, but I cannot start this agent: " + str(response.status_code))
                 st.stop()
         elif "prompt" in config["info"]:
-            st.session_state[history_key].append({"type": "response", "text": config["info"]["prompt"]})
+            data = {}
+            if "params" in config:
+                data.update(config["params"])
+            if "schema" in config:
+                data.update(config["schema"])
+
+            text = chevron.render(config["info"]["prompt"], data, def_ldel='{', def_rdel='}')
+            st.session_state[history_key].append({"type": "response", "text": text})
             st.experimental_rerun()
 
     if "input" in config and config["input"]["type"] == "file":
