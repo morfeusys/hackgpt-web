@@ -7,17 +7,19 @@ def form(init):
     st.markdown("_This agent answers any questions through the uploaded document or link_")
     st.divider()
 
-    link = st.text_input(label="Paste here a direct link to your document")
+    link = st.text_input(label="Paste here a direct link to the document or page")
     uploaded_file = st.file_uploader(label="Or upload file", type=["pdf", "doc", "docx", "xlsx", "txt", "mp3", "wav", "text", "md"])
 
     if st.form_submit_button("Create"):
         if link or uploaded_file:
             init({
                 "type": "retrievalqa",
-                "startRequest": uploaded_file if uploaded_file else link,
                 "info": {
                     "icon": "🔎",
                     "title": "Document QnA"
+                },
+                "params": {
+                    "document": uploaded_file if uploaded_file else link
                 }
             })
 

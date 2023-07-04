@@ -64,7 +64,6 @@ def create_agent_from_template(template_id):
         response = requests.get(agents_api + "/agent/template/" + template_id)
         if response.status_code == 200:
             config = response.json()
-            config["owner"] = None
             st.set_page_config(page_title=config["info"]["title"], page_icon=config["info"]["icon"])
             create_agent(st.empty(), key, config)
         else:
