@@ -16,7 +16,8 @@ def form(init):
                 "type": "retrievalqa",
                 "info": {
                     "icon": "🔎",
-                    "title": "Document QnA"
+                    "title": "Document QnA",
+                    "prompt": "Okay! Now you can ask me anything about this document in conversational manner and I will try to answer."
                 },
                 "params": {
                     "document": uploaded_file if uploaded_file else link

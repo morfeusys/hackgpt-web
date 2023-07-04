@@ -130,7 +130,8 @@ def form(init):
             },
             "info": {
                 "icon": "💡",
-                "title": "Summarizer"
+                "title": "Summarizer",
+                "prompt": "Now you can send me any web page URL or document, and I will summarize it for you."
             },
             "params": {
                 "sentences": sentences,

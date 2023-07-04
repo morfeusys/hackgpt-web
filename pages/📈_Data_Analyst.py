@@ -17,7 +17,8 @@ def form(init):
                 "startRequest": uploaded_file if uploaded_file else dataset,
                 "info": {
                     "icon": "📈",
-                    "title": "Data Analyst"
+                    "title": "Data Analyst",
+                    "prompt": "Okay, now please tell what would you like to fetch from this dataset."
                 },
                 "params": {
                     "url": "https://hackgpt-test.just-ai.com/jupychat",
