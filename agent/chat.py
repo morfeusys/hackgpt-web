@@ -12,16 +12,28 @@ agents_api = os.environ["AGENTS_API"] if "AGENTS_API" in os.environ else "http:/
 agents_url = os.environ["AGENTS_URL"] if "AGENTS_URL" in os.environ else "http://localhost:8502"
 
 
-def init_agent(key, formBuilder):
+def init_agent(key, form_builder, agent_type, agent_info, agent_input=None):
+    if agent_input is None:
+        agent_input = {"type": "text"}
+    st.set_page_config(page_title=agent_info["title"], page_icon=agent_info["icon"])
     container = st.empty()
     if st.session_state.get(key):
         init_chat(container, key)
     else:
-        def init(config):
+        def init(params):
+            config = {
+                "type": agent_type,
+                "info": agent_info,
+                "params": params,
+                "input": agent_input
+            }
             create_agent(container, key, config)
 
-        with container.form(key + "_form", clear_on_submit=True):
-            formBuilder(init)
+        with container.form(key + "_form"):
+            st.title(f'{agent_info["icon"]} {agent_info["title"]}')
+            st.markdown(f'_{agent_info["description"]}_')
+            st.divider()
+            form_builder(init)
 
 
 def upload_file(file):
@@ -97,7 +109,7 @@ def init_chat(container, key):
     conversation = st.session_state[key]
     conversation_id = conversation["conversation_id"]
     config = conversation["config"]
-    history_key = "chat_history_" + conversation["conversation_id"]
+    history_key = "chat_history_" + conversation_id
 
     show_sidebar = "id" not in st.experimental_get_query_params()
     if show_sidebar:
@@ -152,16 +164,19 @@ def init_chat(container, key):
             if "schema" in config:
                 data.update(config["schema"])
 
-            text = chevron.render(config["info"]["prompt"], data, def_ldel='{', def_rdel='}')
+            text = render(config["info"]["prompt"], data)
             st.session_state[history_key].append({"type": "response", "text": text})
             st.experimental_rerun()
 
     if "input" in config and config["input"]["type"] == "file":
         file = container.file_uploader(label="Upload your file here", type=config["input"]["filter"])
         if file:
-            st.session_state[history_key].append({"type": "request", "text": file.name})
-            st.chat_message("user").text(file.name)
-            process_query(conversation_id, history_key, file)
+            files = file if isinstance(file, list) else [file]
+            for file in files:
+                st.session_state[history_key].append({"type": "request", "text": file.name})
+                st.chat_message("user").text(file.name)
+                process_query(conversation_id, history_key, file)
+
     elif query := container.chat_input("What you want to ask"):
         st.chat_message("user").markdown(query)
         st.session_state[history_key].append({"type": "request", "text": query})
@@ -232,6 +247,9 @@ def process_query(conversation_id, history_key, query):
         else:
             placeholder.error("Sorry, but I cannot process you request now... " + str(response.status_code))
 
+
+def render(template, data):
+    return chevron.render(template, data, def_ldel='{', def_rdel='}')
 
 waiting_messages = [
     "Just a sec... or two, or three... 🤔",

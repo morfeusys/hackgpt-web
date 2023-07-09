@@ -3,12 +3,8 @@ from agent.chat import init_agent
 
 
 def form(init):
-    st.markdown("# 💡 Summarizer")
-    st.markdown("_This agent summarizes any documents with defined rules_")
-    st.divider()
-
     sentences = st.number_input(label="The number of sentences in summary", min_value=1)
-    fields = st.text_input(label="Comma separated fields that should be included in summary (optional)")
+    fields = st.text_input(label="Comma separated fields that should be included in summary _(optional)_", help="Only these fileds will be presented in summary if set")
     language = st.selectbox(label="Language of summary", options=[
         "",
         "Afrikaans",
@@ -123,23 +119,24 @@ def form(init):
 
     if st.form_submit_button("Create"):
         init({
-            "type": "summarize",
-            "input": {
-                "type": "file",
-                "filter": ["pdf", "doc", "docx", "xlsx", "txt", "mp3", "wav", "text", "md"]
-            },
-            "info": {
-                "icon": "💡",
-                "title": "Summarizer",
-                "prompt": "Now you can send me any web page URL or document, and I will summarize it for you."
-            },
-            "params": {
-                "sentences": sentences,
-                "fields": fields,
-                "language": language
-            }
+            "sentences": sentences,
+            "fields": fields,
+            "language": language
         })
 
 
-st.set_page_config(page_title="Summarizer agent", page_icon="💡")
-init_agent("summarizer_conversation", form)
+init_agent(
+    key="summarizer_conversation",
+    form_builder=form,
+    agent_type="summarize",
+    agent_info={
+        "icon": "💡",
+        "title": "Summarizer",
+        "description": "This agent summarizes any documents with defined rules",
+        "prompt": "Now you can send me any web page URL or document, and I will summarize it for you."
+    },
+    agent_input={
+        "type": "file",
+        "filter": ["pdf", "doc", "docx", "xlsx", "pptx", "txt", "mp3", "wav", "text", "md", "m4a", "ogg", "opus", "mp4"]
+    }
+)
