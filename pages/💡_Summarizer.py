@@ -141,5 +141,5 @@ def form(init):
         })
 
 
-st.set_page_config(page_title="Simmarizer agent", page_icon="💡")
+st.set_page_config(page_title="Summarizer agent", page_icon="💡")
 init_agent("summarizer_conversation", form)
