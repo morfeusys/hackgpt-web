@@ -187,7 +187,7 @@ def init_chat(container, key):
             st.experimental_rerun()
 
     if "input" in config and config["input"]["type"] == "file":
-        file = container.file_uploader(label="Upload your file here", type=config["input"]["filter"])
+        file = container.file_uploader(label="Upload your file here", type=config["input"]["filter"], accept_multiple_files=True)
         if file:
             files = file if isinstance(file, list) else [file]
             for file in files:
