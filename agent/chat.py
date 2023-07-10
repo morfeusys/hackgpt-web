@@ -191,9 +191,10 @@ def init_chat(container, key):
         if file:
             files = file if isinstance(file, list) else [file]
             for file in files:
-                st.session_state[history_key].append({"type": "request", "text": file.name})
-                st.chat_message("user").text(file.name)
-                process_query(conversation_id, history_key, file)
+                if not any(item["text"] == file.name for item in st.session_state[history_key]):
+                    st.session_state[history_key].append({"type": "request", "text": file.name})
+                    st.chat_message("user").text(file.name)
+                    process_query(conversation_id, history_key, file)
 
     elif query := container.chat_input("What you want to ask"):
         st.chat_message("user").markdown(query)
