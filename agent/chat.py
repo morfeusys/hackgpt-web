@@ -11,11 +11,26 @@ import os
 agents_api = os.environ["AGENTS_API"] if "AGENTS_API" in os.environ else "http://localhost:8000"
 agents_url = os.environ["AGENTS_URL"] if "AGENTS_URL" in os.environ else "http://localhost:8502"
 
+menu_items = {
+    "About": "Created by [Just AI](https://just-ai.com)"
+}
+
+
+def hide_style():
+    st.markdown("""
+    <style>
+        footer {display: none;}
+        a[href="https://streamlit.io/cloud"] {display: none;}
+        div.stActionButton {display: none;}
+    </style>
+    """, unsafe_allow_html=True)
+
 
 def init_agent(key, form_builder, agent_type, agent_info, agent_input=None):
     if agent_input is None:
         agent_input = {"type": "text"}
-    st.set_page_config(page_title=agent_info["title"], page_icon=agent_info["icon"])
+    st.set_page_config(page_title=agent_info["title"], page_icon=agent_info["icon"], menu_items=menu_items)
+    hide_style()
     container = st.empty()
     if st.session_state.get(key):
         init_chat(container, key)
@@ -67,7 +82,8 @@ def create_agent_from_template(template_id):
     key = "conversation_" + template_id
     if st.session_state.get(key):
         info = st.session_state[key]["config"]["info"]
-        st.set_page_config(page_title=info["title"], page_icon=info["icon"])
+        st.set_page_config(page_title=info["title"], page_icon=info["icon"], menu_items=menu_items)
+        hide_style()
         st.markdown(f'## {info["icon"]} {info["title"]}')
         st.markdown(f'ℹ️ {info["description"]}')
         st.divider()
@@ -76,9 +92,11 @@ def create_agent_from_template(template_id):
         response = requests.get(agents_api + "/agent/template/" + template_id)
         if response.status_code == 200:
             config = response.json()
-            st.set_page_config(page_title=config["info"]["title"], page_icon=config["info"]["icon"])
+            st.set_page_config(page_title=config["info"]["title"], page_icon=config["info"]["icon"], menu_items=menu_items)
+            hide_style()
             create_agent(st.empty(), key, config)
         else:
+            hide_style()
             st.error("### Sorry, but this agent was not found...\n" +
                             "Please make sure you use the correct link.")
 
