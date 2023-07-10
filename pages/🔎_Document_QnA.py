@@ -4,7 +4,7 @@ from agent.chat import init_agent
 
 def form(init):
     link = st.text_input(label="Link to the document or web page")
-    uploaded_file = st.file_uploader(label="Or upload document file", type=["pdf", "doc", "docx", "xlsx", "txt", "mp3", "wav", "text", "md"])
+    uploaded_file = st.file_uploader(label="Or upload document file", type=["pdf", "doc", "docx", "xlsx", "pptx", "txt", "mp3", "wav", "text", "md"])
 
     if st.form_submit_button("Create"):
         if link or uploaded_file:
