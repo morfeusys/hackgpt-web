@@ -133,7 +133,7 @@ init_agent(
         "icon": "💡",
         "title": "Summarizer",
         "description": "This agent summarizes any documents with defined rules",
-        "prompt": "Now you can send me any web page URL or document, and I will summarize it for you."
+        "prompt": "Now you can send me any document, and I will summarize it for you."
     },
     agent_input={
         "type": "file",

@@ -8,7 +8,7 @@ import time
 import os
 
 
-agents_api = os.environ["AGENTS_API"] if "AGENTS_API" in os.environ else "http://localhost:8000"
+agents_api = os.environ["AGENTS_API"] if "AGENTS_API" in os.environ else "http://localhost:3000"
 agents_url = os.environ["AGENTS_URL"] if "AGENTS_URL" in os.environ else "http://localhost:8502"
 
 menu_items = {
